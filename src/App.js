@@ -1,23 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from 'react-router-dom'
+
+import {lazy, Suspense, useState } from 'react';
+
+import Navbar from './containers/Navbar'
+
+const UserListPage = lazy(() => import('./pages/UsersList')); // TODO Har bir sahifa ochilganda faqat unga
+const ErrorPage = lazy(() => import('./pages/Error'));        // TODO kerakli ma'lumotlar olindai hammasi birdaniga
+const LoginPage = lazy(() => import('./pages/Auth/Login'));   // TODO olinmaydi
+const RegisterPage = lazy(() => import('./pages/Auth/Register'));
 
 function App() {
+
+ 
+  const [token, setToken] = useState(window.localStorage.getItem('sessionToken')); 
+  // TODO Bu yerda localstorage ichidan token ya'ni server bizga yuborgan ma'lumot olinyapti va pastga qarasen 
+  // TODO o'sha token bo'lsa userList ochiladi aks holda Login yoki Register sahifasi ochiladi.
+
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Router>
+        <Suspense fallback={<h1>Loading...</h1>}>
+            {
+            token ? (
+            <>
+
+              
+              <Navbar setToken={setToken}/>
+ 
+              <Switch>
+              <Route exact path="/" component={UserListPage} />
+              <Route path="*" component={ErrorPage} />
+            </Switch>
+            
+            </>
+          ) : (
+            <Switch>
+              <Route exact path="/" render={() => <LoginPage setToken={setToken}/>} component={LoginPage}/>
+              <Route exact path="/register" component={RegisterPage}/>
+              <Route path="*" component={ErrorPage}/>
+            </Switch>
+          )
+        }
+        </Suspense>
+      </Router>
     </div>
   );
 }
